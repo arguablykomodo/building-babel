@@ -1,0 +1,124 @@
+{
+  "nodes": {
+    "blueprint": {
+      "inputs": {
+        "nixpkgs": [
+          "wasm4-nix",
+          "nixpkgs"
+        ],
+        "systems": "systems"
+      },
+      "locked": {
+        "lastModified": 1771437256,
+        "narHash": "sha256-bLqwib+rtyBRRVBWhMuBXPCL/OThfokA+j6+uH7jDGU=",
+        "owner": "numtide",
+        "repo": "blueprint",
+        "rev": "06ee7190dc2620ea98af9eb225aa9627b68b0e33",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "blueprint",
+        "type": "github"
+      }
+    },
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1784120854,
+        "narHash": "sha256-KesHgItiZPgGX740axSiQLcIQ8D24MDqNpkKYWIek8k=",
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "753cc8a3a87467296ddd1fa93f0cc3e81120ee46",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nixos",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "root": {
+      "inputs": {
+        "nixpkgs": "nixpkgs",
+        "wasm4-nix": "wasm4-nix"
+      }
+    },
+    "systems": {
+      "locked": {
+        "lastModified": 1681028828,
+        "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
+        "owner": "nix-systems",
+        "repo": "default",
+        "rev": "da67096a3b9bf56a91d16901293e51ba5b49a27e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-systems",
+        "repo": "default",
+        "type": "github"
+      }
+    },
+    "wasm4-nix": {
+      "inputs": {
+        "blueprint": "blueprint",
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "wasm4-src": "wasm4-src",
+        "wasm4-src-full": "wasm4-src-full"
+      },
+      "locked": {
+        "lastModified": 1771757544,
+        "narHash": "sha256-Gx9ml0LZrZjikK+iVhG3p8hLXgm8cwN/L2vejzDMjnc=",
+        "owner": "rutrum",
+        "repo": "wasm4-nix",
+        "rev": "3e31bcbbfa052b939147f755358f72f5a08012ff",
+        "type": "github"
+      },
+      "original": {
+        "owner": "rutrum",
+        "repo": "wasm4-nix",
+        "type": "github"
+      }
+    },
+    "wasm4-src": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1734062069,
+        "narHash": "sha256-QZtPqq92SXmH5DbyTgyHK+GG2TZglRpTKyX2tCd2xd8=",
+        "owner": "aduros",
+        "repo": "wasm4",
+        "rev": "92490f261659921d8b724f10b5b842cdf5a0a1bb",
+        "type": "github"
+      },
+      "original": {
+        "owner": "aduros",
+        "ref": "v2.7.1",
+        "repo": "wasm4",
+        "type": "github"
+      }
+    },
+    "wasm4-src-full": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1734062069,
+        "narHash": "sha256-QmSqQh+8w8pxoQcgHrsTfv/lIb5Xh7LkATnSMDUwjKo=",
+        "ref": "refs/tags/v2.7.1",
+        "rev": "92490f261659921d8b724f10b5b842cdf5a0a1bb",
+        "revCount": 1738,
+        "submodules": true,
+        "type": "git",
+        "url": "https://github.com/aduros/wasm4"
+      },
+      "original": {
+        "ref": "refs/tags/v2.7.1",
+        "submodules": true,
+        "type": "git",
+        "url": "https://github.com/aduros/wasm4"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}
