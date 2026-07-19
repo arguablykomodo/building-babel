@@ -46,6 +46,25 @@ fn draw_grid(back: bool) void {
     }
 }
 
+fn clear_lines() void {
+    var y: u8 = HEIGHT - 1;
+    while (y > 0) {
+        var full = true;
+        for (grid[y]) |cell| {
+            if (!cell) full = false;
+        }
+        if (full) {
+            var y2 = y;
+            while (y2 > 0) {
+                @memcpy(&grid[y2], &grid[y2 - 1]);
+                y2 -= 1;
+            }
+            grid[0] = [_]bool{false} ** WIDTH;
+        }
+        y -= 1;
+    }
+}
+
 export fn start() void {}
 
 export fn update() void {
@@ -67,6 +86,7 @@ export fn update() void {
         while (player_y < (HEIGHT - 1) and !grid[player_y + 1][player_x]) player_y += 1;
         grid[player_y][player_x] = true;
         player_y = 0;
+        clear_lines();
     }
 
     draw_block(player_x, player_y, true);
