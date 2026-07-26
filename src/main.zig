@@ -3,11 +3,12 @@ const w4 = @import("wasm4.zig");
 
 const BLOCK_SIZE = 9;
 const WIDTH = 20;
-const HEIGHT = 16;
+const HEIGHT = 15;
 
 var grid = [_][WIDTH]bool{[_]bool{false} ** WIDTH} ** HEIGHT;
 var player_x: u8 = 0;
 var x_offset: f32 = 0;
+var y_offset: f32 = 0;
 var player_y: u8 = 0;
 var prev_input: u8 = 0;
 
@@ -39,10 +40,15 @@ fn draw_grid(back: bool) void {
     for (grid) |row| {
         var grid_x: u8 = 0;
         for (row) |cell| {
-            if (cell) draw_block(grid_x, grid_y, back);
+            if (cell) draw_block(grid_x, grid_y - y_offset, back);
             grid_x += 1;
         }
         grid_y += 1;
+    }
+    for (0..5) |y| {
+        for (0..WIDTH) |x| {
+            draw_block(@floatFromInt(x), HEIGHT + @as(f32, @floatFromInt(y)) - y_offset, back);
+        }
     }
 }
 
@@ -54,6 +60,7 @@ fn clear_lines() void {
             if (!cell) full = false;
         }
         if (full) {
+            y_offset += 1.0;
             var y2 = y;
             while (y2 > 0) {
                 @memcpy(&grid[y2], &grid[y2 - 1]);
@@ -90,6 +97,7 @@ export fn update() void {
     }
 
     draw_block(player_x, player_y, true);
+    y_offset *= 0.9;
     draw_grid(true);
     draw_grid(false);
     draw_block(player_x, player_y, false);
