@@ -8,7 +8,7 @@ pub const HEIGHT = 15;
 
 var grid = [_][WIDTH]bool{[_]bool{false} ** WIDTH} ** HEIGHT;
 
-var player_x: u8 = 0;
+var player_x: i16 = 0;
 var player_y: u8 = 0;
 
 var bag: Tetromino.Bag = .init();
@@ -55,7 +55,6 @@ fn place_tetromino() void {
         grid[@intCast(y)][@intCast(x)] = true;
     }
     clear_lines();
-    player_x = 0;
     player_y = 0;
     shape = bag.grab();
     rotation = 0;
@@ -86,17 +85,12 @@ export fn start() void {
 }
 
 export fn update() void {
-    drawing.x_offset += 0.02;
-
     const input = w4.GAMEPAD1.*;
     const new_input = input & (input ^ prev_input);
     prev_input = input;
 
-    if (new_input & w4.BUTTON_RIGHT != 0 and player_x < WIDTH) player_x += 1;
-    if (player_x == WIDTH) player_x = 0;
-
-    if (new_input & w4.BUTTON_LEFT != 0 and player_x >= 0) player_x -%= 1;
-    if (player_x == std.math.maxInt(u8)) player_x = WIDTH - 1;
+    if (new_input & w4.BUTTON_RIGHT != 0) player_x -%= 1;
+    if (new_input & w4.BUTTON_LEFT != 0) player_x +%= 1;
 
     if (new_input & w4.BUTTON_UP != 0) {
         rotation += 1;
@@ -109,6 +103,7 @@ export fn update() void {
     for (shape.blocks(rotation)) |block| {
         drawing.draw_block(player_x + block[0], player_y + block[1], true);
     }
+    drawing.x_offset = std.math.lerp(drawing.x_offset, player_x - WIDTH / 4 + 1, 0.1);
     drawing.y_offset *= 0.9;
     drawing.draw_grid(grid, true);
     drawing.draw_grid(grid, false);
