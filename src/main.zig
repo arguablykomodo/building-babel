@@ -104,6 +104,19 @@ fn clear_lines() void {
     }
 }
 
+fn draw_shadow() void {
+    const original_y = player_y;
+    while (!collides()) player_y +%= 1;
+    player_y -%= 1;
+    const blocks = shape.blocks(rotation);
+    for (blocks) |block| {
+        const x = @mod(block[0] + player_x, WIDTH);
+        const y = block[1] + player_y;
+        drawing.draw_block(x, y, false);
+    }
+    player_y = original_y;
+}
+
 export fn start() void {
     shape = bag.grab();
 }
@@ -117,12 +130,19 @@ export fn update() void {
     if (inputs & w4.BUTTON_DOWN != 0) soft_drop();
     if (inputs & w4.BUTTON_1 != 0) hard_drop();
 
+    drawing.x_offset = std.math.lerp(drawing.x_offset, player_x - WIDTH / 4 + 1, 0.1);
+    drawing.y_offset *= 0.9;
+
+    w4.DRAW_COLORS.* = 0x43;
     for (shape.blocks(rotation)) |block| {
         drawing.draw_block(player_x + block[0], player_y + block[1], true);
     }
-    drawing.x_offset = std.math.lerp(drawing.x_offset, player_x - WIDTH / 4 + 1, 0.1);
-    drawing.y_offset *= 0.9;
     drawing.draw_grid(grid, true);
+
+    w4.DRAW_COLORS.* = 0x20;
+    draw_shadow();
+
+    w4.DRAW_COLORS.* = 0x32;
     drawing.draw_grid(grid, false);
     for (shape.blocks(rotation)) |block| {
         drawing.draw_block(player_x + block[0], player_y + block[1], false);

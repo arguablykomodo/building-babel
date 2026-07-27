@@ -18,7 +18,6 @@ pub fn draw_block(x: f32, y: f32, back: bool) void {
 
     if (back and circ_y >= 0) return;
     if (!back and circ_y < 0) return;
-    w4.DRAW_COLORS.* = if (back) 0x43 else 0x32;
 
     var screen_x: i32 = @intFromFloat(circ_x * H_RADIUS + 80);
     var screen_x2: i32 = @intFromFloat(circ_x2 * H_RADIUS + 80);
@@ -33,7 +32,7 @@ pub fn draw_grid(grid: [HEIGHT][WIDTH]bool, back: bool) void {
             if (cell) draw_block(@floatFromInt(x), @as(f32, @floatFromInt(y)) - y_offset, back);
         }
     }
-    for (0..5) |y| {
+    for (0..4) |y| {
         for (0..WIDTH) |x| {
             draw_block(@floatFromInt(x), HEIGHT + @as(f32, @floatFromInt(y)) - y_offset, back);
         }
