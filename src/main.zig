@@ -13,7 +13,7 @@ var player_y: u8 = 0;
 
 var bag: Tetromino.Bag = .init();
 var shape: Tetromino = undefined;
-var rotation: u8 = 0;
+var rotation: u2 = 0;
 
 var input: InputManager = .{};
 
@@ -45,6 +45,16 @@ fn collides() bool {
     return false;
 }
 
+fn move(direction: i2) void {
+    player_x += direction;
+    if (collides()) player_x -= direction;
+}
+
+fn rotate() void {
+    rotation +%= 1;
+    if (collides()) rotation -%= 1;
+}
+
 fn soft_drop() void {
     player_y += 1;
     if (collides()) {
@@ -54,10 +64,8 @@ fn soft_drop() void {
 }
 
 fn hard_drop() void {
-    while (!collides()) {
-        player_y += 1;
-    }
-    player_y -= 1;
+    while (!collides()) player_y +%= 1;
+    player_y -%= 1;
     place_tetromino();
 }
 
@@ -103,14 +111,9 @@ export fn start() void {
 export fn update() void {
     const inputs = input.poll();
 
-    if (inputs & w4.BUTTON_RIGHT != 0) player_x -%= 1;
-    if (inputs & w4.BUTTON_LEFT != 0) player_x +%= 1;
-
-    if (inputs & w4.BUTTON_UP != 0) {
-        rotation += 1;
-        if (rotation == 4) rotation = 0;
-    }
-
+    if (inputs & w4.BUTTON_RIGHT != 0) move(-1);
+    if (inputs & w4.BUTTON_LEFT != 0) move(1);
+    if (inputs & w4.BUTTON_UP != 0) rotate();
     if (inputs & w4.BUTTON_DOWN != 0) soft_drop();
     if (inputs & w4.BUTTON_1 != 0) hard_drop();
 

@@ -50,17 +50,16 @@ pub const Tetromino = enum {
         };
     }
 
-    pub fn blocks(self: Tetromino, rotation: u8) [4][2]i16 {
+    pub fn blocks(self: Tetromino, rotation: u2) [4][2]i16 {
         var block_shape = self.shape();
         const c = self.center();
         for (&block_shape) |*bi| {
             const bf: [2]f32 = .{ bi[0] - c[0], bi[1] - c[1] };
-            const bf2 = switch (@mod(rotation, 4)) {
+            const bf2 = switch (rotation) {
                 0 => bf,
                 1 => .{ bf[1], -bf[0] - 1.0 },
                 2 => .{ -bf[0] - 1.0, -bf[1] - 1.0 },
                 3 => .{ -bf[1] - 1.0, bf[0] },
-                else => bf,
             };
             const bf3 = .{ bf2[0] + c[0], bf2[1] + c[1] };
             bi.* = .{ @intFromFloat(bf3[0]), @intFromFloat(bf3[1]) };
