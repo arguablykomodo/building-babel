@@ -15,7 +15,23 @@ var bag: Tetromino.Bag = .init();
 var shape: Tetromino = undefined;
 var rotation: u8 = 0;
 
-var prev_input: u8 = 0;
+var input: InputManager = .{};
+
+const InputManager = struct {
+    timer: [8]u8 = [_]u8{0} ** 8,
+
+    fn poll(self: *InputManager) u8 {
+        var output: u8 = 0;
+        const inputs = w4.GAMEPAD1.*;
+        for (0..8) |i| {
+            if (((inputs >> @intCast(i)) & 1) == 1) {
+                if (@mod(self.timer[i], 12) == 0) output += @as(u8, 1) << @intCast(i);
+                self.timer[i] +%= 1;
+            } else self.timer[i] = 0;
+        }
+        return output;
+    }
+};
 
 fn collides() bool {
     const blocks = shape.blocks(rotation);
@@ -85,20 +101,18 @@ export fn start() void {
 }
 
 export fn update() void {
-    const input = w4.GAMEPAD1.*;
-    const new_input = input & (input ^ prev_input);
-    prev_input = input;
+    const inputs = input.poll();
 
-    if (new_input & w4.BUTTON_RIGHT != 0) player_x -%= 1;
-    if (new_input & w4.BUTTON_LEFT != 0) player_x +%= 1;
+    if (inputs & w4.BUTTON_RIGHT != 0) player_x -%= 1;
+    if (inputs & w4.BUTTON_LEFT != 0) player_x +%= 1;
 
-    if (new_input & w4.BUTTON_UP != 0) {
+    if (inputs & w4.BUTTON_UP != 0) {
         rotation += 1;
         if (rotation == 4) rotation = 0;
     }
 
-    if (new_input & w4.BUTTON_DOWN != 0) soft_drop();
-    if (new_input & w4.BUTTON_1 != 0) hard_drop();
+    if (inputs & w4.BUTTON_DOWN != 0) soft_drop();
+    if (inputs & w4.BUTTON_1 != 0) hard_drop();
 
     for (shape.blocks(rotation)) |block| {
         drawing.draw_block(player_x + block[0], player_y + block[1], true);
