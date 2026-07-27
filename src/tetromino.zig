@@ -1,3 +1,5 @@
+const std = @import("std");
+
 pub const Tetromino = enum {
     i,
     o,
@@ -6,6 +8,28 @@ pub const Tetromino = enum {
     z,
     j,
     l,
+
+    pub const Bag = struct {
+        rng: std.Random.DefaultPrng = std.Random.DefaultPrng.init(0),
+        shapes: [7]Tetromino = .{ .i, .o, .t, .s, .z, .j, .l },
+        taken: u8 = 0,
+
+        pub fn init() Bag {
+            var bag = Bag{};
+            bag.rng.random().shuffle(Tetromino, &bag.shapes);
+            return bag;
+        }
+
+        pub fn grab(self: *Bag) Tetromino {
+            const grabbed = self.shapes[self.taken];
+            self.taken += 1;
+            if (self.taken >= 7) {
+                self.rng.random().shuffle(Tetromino, &self.shapes);
+                self.taken = 0;
+            }
+            return grabbed;
+        }
+    };
 
     pub fn shape(self: Tetromino) [4][2]i16 {
         return switch (self) {

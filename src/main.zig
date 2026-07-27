@@ -7,12 +7,15 @@ pub const WIDTH = 20;
 pub const HEIGHT = 15;
 
 var grid = [_][WIDTH]bool{[_]bool{false} ** WIDTH} ** HEIGHT;
+
 var player_x: u8 = 0;
 var player_y: u8 = 0;
-var prev_input: u8 = 0;
 
-var shape: Tetromino = .l;
+var bag: Tetromino.Bag = .init();
+var shape: Tetromino = undefined;
 var rotation: u8 = 0;
+
+var prev_input: u8 = 0;
 
 fn clear_lines() void {
     var y: u8 = HEIGHT - 1;
@@ -34,7 +37,9 @@ fn clear_lines() void {
     }
 }
 
-export fn start() void {}
+export fn start() void {
+    shape = bag.grab();
+}
 
 export fn update() void {
     drawing.x_offset += 0.02;
@@ -60,6 +65,8 @@ export fn update() void {
         grid[player_y][player_x] = true;
         player_y = 0;
         clear_lines();
+        shape = bag.grab();
+        rotation = 0;
     }
 
     for (shape.blocks(rotation)) |block| {
