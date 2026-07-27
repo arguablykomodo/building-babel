@@ -30,7 +30,7 @@ pub fn build(b: *std.Build) !void {
 
     const exe_check = b.addExecutable(.{
         .name = "cart",
-        .root_module = cart
+        .root_module = cart,
     });
     const check = b.step("check", "check if cart compiles");
     check.dependOn(&exe_check.step);

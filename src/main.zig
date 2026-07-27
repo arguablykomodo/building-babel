@@ -1,5 +1,6 @@
 const std = @import("std");
 const w4 = @import("wasm4.zig");
+const Tetromino = @import("tetromino.zig").Tetromino;
 
 const BLOCK_SIZE = 9;
 const WIDTH = 20;
@@ -11,6 +12,9 @@ var x_offset: f32 = 0;
 var y_offset: f32 = 0;
 var player_y: u8 = 0;
 var prev_input: u8 = 0;
+
+var shape: Tetromino = .l;
+var rotation: u8 = 0;
 
 fn draw_block(x: f32, y: f32, back: bool) void {
     const H_RADIUS = BLOCK_SIZE * WIDTH / 6;
@@ -88,6 +92,10 @@ export fn update() void {
     if (player_x == std.math.maxInt(u8)) player_x = WIDTH - 1;
 
     if (new_input & w4.BUTTON_DOWN != 0 and player_y < (HEIGHT - 1)) player_y += 1;
+    if (new_input & w4.BUTTON_UP != 0) {
+        rotation += 1;
+        if (rotation == 4) rotation = 0;
+    }
 
     if (new_input & w4.BUTTON_1 != 0) {
         while (player_y < (HEIGHT - 1) and !grid[player_y + 1][player_x]) player_y += 1;
@@ -96,9 +104,13 @@ export fn update() void {
         clear_lines();
     }
 
-    draw_block(player_x, player_y, true);
+    for (shape.blocks(rotation)) |block| {
+        draw_block(player_x + block[0], player_y + block[1], true);
+    }
     y_offset *= 0.9;
     draw_grid(true);
     draw_grid(false);
-    draw_block(player_x, player_y, false);
+    for (shape.blocks(rotation)) |block| {
+        draw_block(player_x + block[0], player_y + block[1], false);
+    }
 }
