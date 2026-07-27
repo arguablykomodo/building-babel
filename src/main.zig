@@ -17,6 +17,50 @@ var rotation: u8 = 0;
 
 var prev_input: u8 = 0;
 
+fn collides() bool {
+    const blocks = shape.blocks(rotation);
+    for (blocks) |block| {
+        const x = @mod(block[0] + player_x, WIDTH);
+        const y = block[1] + player_y;
+        if (y < 0) return false;
+        if (y >= HEIGHT) return true;
+        if (grid[@intCast(y)][@intCast(x)]) return true;
+    }
+    return false;
+}
+
+fn soft_drop() void {
+    player_y += 1;
+    if (collides()) {
+        player_y -= 1;
+        place_tetromino();
+    }
+}
+
+fn hard_drop() void {
+    while (!collides()) {
+        player_y += 1;
+    }
+    player_y -= 1;
+    place_tetromino();
+}
+
+fn place_tetromino() void {
+    const blocks = shape.blocks(rotation);
+    for (blocks) |block| {
+        const x = @mod(block[0] + player_x, WIDTH);
+        const y = block[1] + player_y;
+        if (y < 0) return;
+        if (y >= HEIGHT) return;
+        grid[@intCast(y)][@intCast(x)] = true;
+    }
+    clear_lines();
+    player_x = 0;
+    player_y = 0;
+    shape = bag.grab();
+    rotation = 0;
+}
+
 fn clear_lines() void {
     var y: u8 = HEIGHT - 1;
     while (y > 0) {
@@ -54,20 +98,13 @@ export fn update() void {
     if (new_input & w4.BUTTON_LEFT != 0 and player_x >= 0) player_x -%= 1;
     if (player_x == std.math.maxInt(u8)) player_x = WIDTH - 1;
 
-    if (new_input & w4.BUTTON_DOWN != 0 and player_y < (HEIGHT - 1)) player_y += 1;
     if (new_input & w4.BUTTON_UP != 0) {
         rotation += 1;
         if (rotation == 4) rotation = 0;
     }
 
-    if (new_input & w4.BUTTON_1 != 0) {
-        while (player_y < (HEIGHT - 1) and !grid[player_y + 1][player_x]) player_y += 1;
-        grid[player_y][player_x] = true;
-        player_y = 0;
-        clear_lines();
-        shape = bag.grab();
-        rotation = 0;
-    }
+    if (new_input & w4.BUTTON_DOWN != 0) soft_drop();
+    if (new_input & w4.BUTTON_1 != 0) hard_drop();
 
     for (shape.blocks(rotation)) |block| {
         drawing.draw_block(player_x + block[0], player_y + block[1], true);
