@@ -1,60 +1,18 @@
 const std = @import("std");
 const w4 = @import("wasm4.zig");
 const Tetromino = @import("tetromino.zig").Tetromino;
+const drawing = @import("drawing.zig");
 
-const BLOCK_SIZE = 9;
-const WIDTH = 20;
-const HEIGHT = 15;
+pub const WIDTH = 20;
+pub const HEIGHT = 15;
 
 var grid = [_][WIDTH]bool{[_]bool{false} ** WIDTH} ** HEIGHT;
 var player_x: u8 = 0;
-var x_offset: f32 = 0;
-var y_offset: f32 = 0;
 var player_y: u8 = 0;
 var prev_input: u8 = 0;
 
 var shape: Tetromino = .l;
 var rotation: u8 = 0;
-
-fn draw_block(x: f32, y: f32, back: bool) void {
-    const H_RADIUS = BLOCK_SIZE * WIDTH / 6;
-    const V_RADIUS = BLOCK_SIZE;
-
-    const circ_x = @cos((x - x_offset) / WIDTH * std.math.tau);
-    const circ_x2 = @cos((x + 1 - x_offset) / WIDTH * std.math.tau);
-    const circ_y = @sin((x - x_offset) / WIDTH * std.math.tau);
-
-    if (back and circ_y >= 0) return;
-    if (!back and circ_y < 0) return;
-    w4.DRAW_COLORS.* = if (back) 0x43 else 0x32;
-
-    var screen_x: i32 = @intFromFloat(circ_x * H_RADIUS + 80);
-    var screen_x2: i32 = @intFromFloat(circ_x2 * H_RADIUS + 80);
-    if (screen_x > screen_x2) {
-        const tmp = screen_x;
-        screen_x = screen_x2;
-        screen_x2 = tmp;
-    }
-    const screen_y: i32 = @intFromFloat(circ_y * V_RADIUS + y * BLOCK_SIZE + BLOCK_SIZE);
-    w4.rect(screen_x, screen_y, @intCast(screen_x2 - screen_x), BLOCK_SIZE);
-}
-
-fn draw_grid(back: bool) void {
-    var grid_y: u8 = 0;
-    for (grid) |row| {
-        var grid_x: u8 = 0;
-        for (row) |cell| {
-            if (cell) draw_block(grid_x, grid_y - y_offset, back);
-            grid_x += 1;
-        }
-        grid_y += 1;
-    }
-    for (0..5) |y| {
-        for (0..WIDTH) |x| {
-            draw_block(@floatFromInt(x), HEIGHT + @as(f32, @floatFromInt(y)) - y_offset, back);
-        }
-    }
-}
 
 fn clear_lines() void {
     var y: u8 = HEIGHT - 1;
@@ -64,7 +22,7 @@ fn clear_lines() void {
             if (!cell) full = false;
         }
         if (full) {
-            y_offset += 1.0;
+            drawing.y_offset += 1.0;
             var y2 = y;
             while (y2 > 0) {
                 @memcpy(&grid[y2], &grid[y2 - 1]);
@@ -79,7 +37,7 @@ fn clear_lines() void {
 export fn start() void {}
 
 export fn update() void {
-    x_offset += 0.02;
+    drawing.x_offset += 0.02;
 
     const input = w4.GAMEPAD1.*;
     const new_input = input & (input ^ prev_input);
@@ -105,12 +63,12 @@ export fn update() void {
     }
 
     for (shape.blocks(rotation)) |block| {
-        draw_block(player_x + block[0], player_y + block[1], true);
+        drawing.draw_block(player_x + block[0], player_y + block[1], true);
     }
-    y_offset *= 0.9;
-    draw_grid(true);
-    draw_grid(false);
+    drawing.y_offset *= 0.9;
+    drawing.draw_grid(grid, true);
+    drawing.draw_grid(grid, false);
     for (shape.blocks(rotation)) |block| {
-        draw_block(player_x + block[0], player_y + block[1], false);
+        drawing.draw_block(player_x + block[0], player_y + block[1], false);
     }
 }
