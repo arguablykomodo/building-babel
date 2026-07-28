@@ -23,7 +23,7 @@ pub fn draw_block(x: f32, y: f32, back: bool) void {
     var screen_x2: i32 = @intFromFloat(circ_x2 * H_RADIUS + 80);
     if (screen_x > screen_x2) std.mem.swap(i32, &screen_x, &screen_x2);
     const screen_y: i32 = @intFromFloat(circ_y * V_RADIUS + y * BLOCK_SIZE + BLOCK_SIZE);
-    w4.rect(screen_x, screen_y, @intCast(screen_x2 - screen_x), BLOCK_SIZE);
+    w4.rect(screen_x - 40, screen_y, @intCast(screen_x2 - screen_x), BLOCK_SIZE);
 }
 
 pub fn draw_grid(grid: [HEIGHT][WIDTH]bool, back: bool) void {

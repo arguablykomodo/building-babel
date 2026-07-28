@@ -10,6 +10,16 @@ pub fn build(b: *std.Build) !void {
         .optimize = b.standardOptimizeOption(.{}),
     });
 
+    const png2source = b.addSystemCommand(&.{ "w4", "png2src", "--zig" });
+    inline for (0..5) |i| {
+        png2source.addFileArg(b.path(b.fmt("sprites/cloud_{}.png", .{i})));
+    }
+    png2source.addArg("-o");
+    const sprite_file = png2source.addOutputFileArg("sprites.zig");
+    cart.addAnonymousImport("sprites", .{
+        .root_source_file = sprite_file,
+    });
+
     const exe = b.addExecutable(.{
         .name = "cart",
         .root_module = cart,

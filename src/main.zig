@@ -2,6 +2,7 @@ const std = @import("std");
 const w4 = @import("wasm4.zig");
 const Tetromino = @import("tetromino.zig").Tetromino;
 const drawing = @import("drawing.zig");
+const sprites = @import("sprites");
 
 pub const WIDTH = 20;
 pub const HEIGHT = 15;
@@ -9,7 +10,8 @@ pub const HEIGHT = 15;
 var grid = [_][WIDTH]bool{[_]bool{false} ** WIDTH} ** HEIGHT;
 var bag: Tetromino.Bag = .init();
 var shape: Tetromino = undefined;
-var timer: u8 = 0;
+var cloud_timer: u32 = 1000;
+var drop_timer: u8 = 0;
 var gravity: u8 = 60;
 var lines_cleared: u16 = 0;
 
@@ -17,7 +19,6 @@ var input: InputManager = .{};
 var player_x: i16 = 0;
 var player_y: u8 = 0;
 var rotation: u2 = 0;
-
 
 const InputManager = struct {
     timer: [8]u8 = [_]u8{0} ** 8,
@@ -126,9 +127,10 @@ export fn start() void {
 }
 
 export fn update() void {
-    timer +%= 1;
-    if (timer > gravity) {
-        timer = 0;
+    cloud_timer +%= 1;
+    drop_timer +%= 1;
+    if (drop_timer > gravity) {
+        drop_timer = 0;
         soft_drop();
     }
     const inputs = input.poll();
@@ -141,6 +143,16 @@ export fn update() void {
 
     drawing.x_offset = std.math.lerp(drawing.x_offset, player_x - WIDTH / 4 + 1, 0.1);
     drawing.y_offset *= 0.9;
+
+    inline for (0..5) |i| {
+        const sprite = @field(sprites, std.fmt.comptimePrint("cloud_{}", .{i}));
+        const width = @field(sprites, std.fmt.comptimePrint("cloud_{}_width", .{i}));
+        const height = @field(sprites, std.fmt.comptimePrint("cloud_{}_height", .{i}));
+        const flags = @field(sprites, std.fmt.comptimePrint("cloud_{}_flags", .{i}));
+        w4.DRAW_COLORS.* = 0x0020;
+        const x: i32 = @intCast(@mod(cloud_timer / (i + 3), 160 + width));
+        w4.blit(&sprite, x - width, (4 - i) * 25 + 8, width, height, flags);
+    }
 
     w4.DRAW_COLORS.* = 0x43;
     for (shape.blocks(rotation)) |block| {
@@ -159,5 +171,5 @@ export fn update() void {
 
     w4.DRAW_COLORS.* = 0x04;
     var buffer: [256]u8 = [1]u8{0} ** 256;
-    w4.text(buffer[0..std.fmt.printInt(&buffer, lines_cleared, 10, .lower, .{})], 0, 0);
+    w4.text(buffer[0..std.fmt.printInt(&buffer, lines_cleared, 10, .lower, .{})], 90, 20);
 }
