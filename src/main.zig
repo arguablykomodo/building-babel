@@ -7,15 +7,17 @@ pub const WIDTH = 20;
 pub const HEIGHT = 15;
 
 var grid = [_][WIDTH]bool{[_]bool{false} ** WIDTH} ** HEIGHT;
-
-var player_x: i16 = 0;
-var player_y: u8 = 0;
-
 var bag: Tetromino.Bag = .init();
 var shape: Tetromino = undefined;
-var rotation: u2 = 0;
+var timer: u8 = 0;
+var gravity: u8 = 60;
+var lines_cleared: u16 = 0;
 
 var input: InputManager = .{};
+var player_x: i16 = 0;
+var player_y: u8 = 0;
+var rotation: u2 = 0;
+
 
 const InputManager = struct {
     timer: [8]u8 = [_]u8{0} ** 8,
@@ -99,6 +101,8 @@ fn clear_lines() void {
                 y2 -= 1;
             }
             grid[0] = [_]bool{false} ** WIDTH;
+            lines_cleared +|= 1;
+            if (@mod(lines_cleared, 10) == 0) gravity -= 5;
         }
         y -= 1;
     }
@@ -122,6 +126,11 @@ export fn start() void {
 }
 
 export fn update() void {
+    timer +%= 1;
+    if (timer > gravity) {
+        timer = 0;
+        soft_drop();
+    }
     const inputs = input.poll();
 
     if (inputs & w4.BUTTON_RIGHT != 0) move(-1);
@@ -147,4 +156,8 @@ export fn update() void {
     for (shape.blocks(rotation)) |block| {
         drawing.draw_block(player_x + block[0], player_y + block[1], false);
     }
+
+    w4.DRAW_COLORS.* = 0x04;
+    var buffer: [256]u8 = [1]u8{0} ** 256;
+    w4.text(buffer[0..std.fmt.printInt(&buffer, lines_cleared, 10, .lower, .{})], 0, 0);
 }
