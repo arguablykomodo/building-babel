@@ -64,7 +64,8 @@ pub fn draw(self: *@This()) void {
         height += paragraph.height;
     }
 
-    self.offset_y = std.math.lerp(self.offset_y, @as(f32, @floatFromInt(height - 160)), 0.02);
+    const target_y: f32 = @floatFromInt(@max(height - 160, 0));
+    self.offset_y = std.math.lerp(self.offset_y, target_y, 0.02);
 }
 
 fn draw_wrapped(paragraph: []const u8, y: i32, right: bool) void {
