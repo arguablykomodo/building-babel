@@ -2,9 +2,11 @@ const std = @import("std");
 const w4 = @import("wasm4.zig");
 const Game = @import("Game.zig");
 const sprites = @import("sprites");
+const Script = @import("Script.zig");
 
 var game: Game = undefined;
 var input: InputManager = .{};
+var script: Script = .{};
 
 var drop_timer: u8 = 0;
 var cloud_timer: u32 = 1000;
@@ -56,4 +58,6 @@ export fn update() void {
     }
 
     game.renderer.draw();
+    script.draw();
+    script.revealed = game.lines_cleared / 3;
 }
