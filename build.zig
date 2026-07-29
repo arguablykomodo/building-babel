@@ -34,9 +34,16 @@ pub fn build(b: *std.Build) !void {
 
     const run_exe = b.addSystemCommand(&.{ "w4", "run-native" });
     run_exe.addArtifactArg(exe);
-
     const step_run = b.step("run", "compile and run the cart");
     step_run.dependOn(&run_exe.step);
+
+    const bundle_exe = b.addSystemCommand(&.{ "w4", "bundle" });
+    bundle_exe.addArtifactArg(exe);
+    bundle_exe.addArgs(&.{ "--title", "Building Babel", "--html" });
+    const bundled = bundle_exe.addOutputFileArg("index.html");
+    const bundle_install = b.addInstallFile(bundled, "index.html");
+    const bundle_step = b.step("bundle", "bundle html");
+    bundle_step.dependOn(&bundle_install.step);
 
     const exe_check = b.addExecutable(.{
         .name = "cart",
