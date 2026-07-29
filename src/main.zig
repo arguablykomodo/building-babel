@@ -1,24 +1,13 @@
 const std = @import("std");
 const w4 = @import("wasm4.zig");
-const Tetromino = @import("tetromino.zig").Tetromino;
-const drawing = @import("drawing.zig");
+const Game = @import("Game.zig");
 const sprites = @import("sprites");
 
-pub const WIDTH = 20;
-pub const HEIGHT = 15;
-
-var grid = [_][WIDTH]bool{[_]bool{false} ** WIDTH} ** HEIGHT;
-var bag: Tetromino.Bag = .init();
-var shape: Tetromino = undefined;
-var cloud_timer: u32 = 1000;
-var drop_timer: u8 = 0;
-var gravity: u8 = 60;
-var lines_cleared: u16 = 0;
-
+var game: Game = undefined;
 var input: InputManager = .{};
-var player_x: i16 = 0;
-var player_y: u8 = 0;
-var rotation: u2 = 0;
+
+var drop_timer: u8 = 0;
+var cloud_timer: u32 = 1000;
 
 const InputManager = struct {
     timer: [8]u8 = [_]u8{0} ** 8,
@@ -36,113 +25,25 @@ const InputManager = struct {
     }
 };
 
-fn collides() bool {
-    const blocks = shape.blocks(rotation);
-    for (blocks) |block| {
-        const x = @mod(block[0] + player_x, WIDTH);
-        const y = block[1] + player_y;
-        if (y < 0) return false;
-        if (y >= HEIGHT) return true;
-        if (grid[@intCast(y)][@intCast(x)]) return true;
-    }
-    return false;
-}
-
-fn move(direction: i2) void {
-    player_x += direction;
-    if (collides()) player_x -= direction;
-}
-
-fn rotate() void {
-    rotation +%= 1;
-    if (collides()) rotation -%= 1;
-}
-
-fn soft_drop() void {
-    player_y += 1;
-    if (collides()) {
-        player_y -= 1;
-        place_tetromino();
-    }
-}
-
-fn hard_drop() void {
-    while (!collides()) player_y +%= 1;
-    player_y -%= 1;
-    place_tetromino();
-}
-
-fn place_tetromino() void {
-    const blocks = shape.blocks(rotation);
-    for (blocks) |block| {
-        const x = @mod(block[0] + player_x, WIDTH);
-        const y = block[1] + player_y;
-        if (y < 0) return;
-        if (y >= HEIGHT) return;
-        grid[@intCast(y)][@intCast(x)] = true;
-    }
-    clear_lines();
-    player_y = 0;
-    shape = bag.grab();
-    rotation = 0;
-}
-
-fn clear_lines() void {
-    var y: u8 = HEIGHT - 1;
-    while (y > 0) {
-        var full = true;
-        for (grid[y]) |cell| {
-            if (!cell) full = false;
-        }
-        if (full) {
-            drawing.y_offset += 1.0;
-            var y2 = y;
-            while (y2 > 0) {
-                @memcpy(&grid[y2], &grid[y2 - 1]);
-                y2 -= 1;
-            }
-            grid[0] = [_]bool{false} ** WIDTH;
-            lines_cleared +|= 1;
-            if (@mod(lines_cleared, 10) == 0) gravity -= 5;
-        }
-        y -= 1;
-    }
-}
-
-fn draw_shadow() void {
-    const original_y = player_y;
-    while (!collides()) player_y +%= 1;
-    player_y -%= 1;
-    const blocks = shape.blocks(rotation);
-    for (blocks) |block| {
-        const x = @mod(block[0] + player_x, WIDTH);
-        const y = block[1] + player_y;
-        drawing.draw_block(x, y, false);
-    }
-    player_y = original_y;
-}
-
 export fn start() void {
-    shape = bag.grab();
+    game = Game.init(0);
+    game.renderer = Game.Renderer{ .game = &game };
 }
 
 export fn update() void {
     cloud_timer +%= 1;
     drop_timer +%= 1;
-    if (drop_timer > gravity) {
+    if (drop_timer > 60 - game.lines_cleared) {
         drop_timer = 0;
-        soft_drop();
+        game.soft_drop();
     }
     const inputs = input.poll();
 
-    if (inputs & w4.BUTTON_RIGHT != 0) move(-1);
-    if (inputs & w4.BUTTON_LEFT != 0) move(1);
-    if (inputs & w4.BUTTON_UP != 0) rotate();
-    if (inputs & w4.BUTTON_DOWN != 0) soft_drop();
-    if (inputs & w4.BUTTON_1 != 0) hard_drop();
-
-    drawing.x_offset = std.math.lerp(drawing.x_offset, player_x - WIDTH / 4 + 1, 0.1);
-    drawing.y_offset *= 0.9;
+    if (inputs & w4.BUTTON_RIGHT != 0) game.move(-1);
+    if (inputs & w4.BUTTON_LEFT != 0) game.move(1);
+    if (inputs & w4.BUTTON_UP != 0) game.rotate();
+    if (inputs & w4.BUTTON_DOWN != 0) game.soft_drop();
+    if (inputs & w4.BUTTON_1 != 0) game.hard_drop();
 
     inline for (0..5) |i| {
         const sprite = @field(sprites, std.fmt.comptimePrint("cloud_{}", .{i}));
@@ -154,22 +55,5 @@ export fn update() void {
         w4.blit(&sprite, x - width, (4 - i) * 25 + 8, width, height, flags);
     }
 
-    w4.DRAW_COLORS.* = 0x43;
-    for (shape.blocks(rotation)) |block| {
-        drawing.draw_block(player_x + block[0], player_y + block[1], true);
-    }
-    drawing.draw_grid(grid, true);
-
-    w4.DRAW_COLORS.* = 0x20;
-    draw_shadow();
-
-    w4.DRAW_COLORS.* = 0x32;
-    drawing.draw_grid(grid, false);
-    for (shape.blocks(rotation)) |block| {
-        drawing.draw_block(player_x + block[0], player_y + block[1], false);
-    }
-
-    w4.DRAW_COLORS.* = 0x04;
-    var buffer: [256]u8 = [1]u8{0} ** 256;
-    w4.text(buffer[0..std.fmt.printInt(&buffer, lines_cleared, 10, .lower, .{})], 90, 20);
+    game.renderer.draw();
 }
