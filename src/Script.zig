@@ -103,6 +103,10 @@ const Wrapped = struct {
         var width: usize = 0;
         var start_index: usize = 0;
         var end_index: usize = 0;
+        const first_word = words.first();
+        wrapped.len += first_word.len;
+        width += first_word.len * CHAR_WIDTH + SPACE_WIDTH;
+        end_index += first_word.len + 1;
         while (words.next()) |word| {
             wrapped.len += word.len;
             if (width + word.len * CHAR_WIDTH > MAX_WIDTH) {
@@ -132,7 +136,7 @@ const Wrapped = struct {
         w4.DRAW_COLORS.* = if (right) 0x04 else 0x03;
         var chars_drawn: usize = 0;
         for (self.lines[0..self.height], self.widths[0..self.height], 0..) |line, width, i| {
-            var x: i32 = if (right) LEFT + MAX_WIDTH - width else LEFT;
+            var x: i32 = if (right) LEFT + MAX_WIDTH - width else LEFT - @max(0, width - MAX_WIDTH);
             var words = std.mem.splitScalar(u8, line, ' ');
             while (words.next()) |word| {
                 const chars_to_draw = @min(chars - chars_drawn, word.len);
