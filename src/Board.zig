@@ -13,6 +13,7 @@ player_x: i16 = 0,
 player_y: i16 = 0,
 rotation: u2 = 0,
 lines_cleared: usize = 0,
+game_over: bool = false,
 
 renderer: Renderer = undefined,
 
@@ -38,23 +39,28 @@ pub fn collides(self: @This(), x: i16, y: i16, rot: u1) bool {
 }
 
 pub fn move(self: *@This(), direction: i2) void {
+    if (self.game_over) return;
     if (!self.collides(direction, 0, 0)) self.player_x += direction;
 }
 
 pub fn rotate(self: *@This()) void {
+    if (self.game_over) return;
     if (!self.collides(0, 0, 1)) self.rotation +%= 1;
 }
 
 pub fn soft_drop(self: *@This()) void {
+    if (self.game_over) return;
     if (self.collides(0, 1, 0)) self.place_tetromino() else self.player_y += 1;
 }
 
 pub fn hard_drop(self: *@This()) void {
+    if (self.game_over) return;
     while (!self.collides(0, 1, 0)) self.player_y += 1;
     self.place_tetromino();
 }
 
 fn place_tetromino(self: *@This()) void {
+    if (self.game_over) return;
     const blocks = self.tetromino.blocks(self.player_x, self.player_y, self.rotation);
     for (blocks) |block| {
         const wrapped_x = @mod(block[0], WIDTH);
@@ -66,6 +72,7 @@ fn place_tetromino(self: *@This()) void {
     self.player_y = 0;
     self.rotation = 0;
     self.tetromino = self.bag.grab();
+    if (self.collides(0, 0, 0)) self.game_over = true;
     w4.tone(110, 2 | (15 << 8), 50, w4.TONE_NOISE);
 }
 
