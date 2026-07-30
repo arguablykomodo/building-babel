@@ -1,13 +1,13 @@
 const w4 = @import("wasm4.zig");
 const Tetromino = @import("tetromino.zig").Tetromino;
-pub const Renderer = @import("BoardRenderer.zig");
+const Renderer = @import("BoardRenderer.zig");
 
 pub const WIDTH = 20;
 pub const HEIGHT = 15;
 pub const Grid = [HEIGHT][WIDTH]bool;
 
 grid: Grid = [_][WIDTH]bool{[_]bool{false} ** WIDTH} ** HEIGHT,
-bag: Tetromino.Bag,
+bag: Tetromino.Bag = undefined,
 tetromino: Tetromino = undefined,
 player_x: i16 = 0,
 player_y: i16 = 0,
@@ -18,10 +18,10 @@ drop_timer: u8 = 0,
 
 renderer: Renderer = undefined,
 
-pub fn init(seed: u64) @This() {
-    var game: @This() = .{ .bag = Tetromino.Bag.init(seed) };
-    game.tetromino = game.bag.grab();
-    return game;
+pub fn init(self: *@This(), seed: u64) void {
+    self.bag = Tetromino.Bag.init(seed);
+    self.tetromino = self.bag.grab();
+    self.renderer = Renderer{ .game = self };
 }
 
 pub fn update(self: *@This(), inputs: u8) void {

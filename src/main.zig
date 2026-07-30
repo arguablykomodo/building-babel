@@ -18,7 +18,7 @@ const night_colors: [4]u32 = .{
     0x2d162c,
 };
 
-var game: Board = undefined;
+var game: Board = .{};
 var input: InputManager = .{};
 var script: Script = .{};
 
@@ -41,8 +41,7 @@ const InputManager = struct {
 };
 
 export fn start() void {
-    game = Board.init(0);
-    game.renderer = Board.Renderer{ .game = &game };
+    game.init(0);
 }
 
 pub fn lerpColor(c0: u32, c1: u32, t: f32) u32 {
