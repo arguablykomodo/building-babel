@@ -61,6 +61,7 @@ export fn update() void {
     cloud_timer +%= 1;
     drop_timer +%= 1;
     script.update();
+    game.renderer.update();
 
     if (drop_timer > 60 - game.lines_cleared) {
         drop_timer = 0;
