@@ -8,12 +8,13 @@ const CHAR_WIDTH = 8;
 const REVEAL_TIME = 4;
 const LANG_TIME = 120;
 
-const LANGUAGES = 2;
+const LANGUAGES = 3;
 const PARAGRAPHS = 18;
 
 const scripts: [LANGUAGES][]const u8 = .{
     @embedFile("script/es.ascii"),
     @embedFile("script/en.ascii"),
+    @embedFile("script/fr.ascii"),
 };
 
 revealed: usize = 0,
