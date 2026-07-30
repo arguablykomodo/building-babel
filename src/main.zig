@@ -47,6 +47,11 @@ export fn update() void {
 
     const inputs = input.poll();
     if (game_started) {
+        if (game.game_over and inputs & w4.BUTTON_2 != 0) {
+            game = .{};
+            game.init(rng.random());
+            game_started = false;
+        }
         game.update(inputs);
     } else {
         if (inputs & w4.BUTTON_1 != 0) {

@@ -24,15 +24,15 @@ script: Script = .{},
 pub fn init(self: *@This(), random: std.Random) void {
     self.bag = Tetromino.Bag.init(random);
     self.tetromino = self.bag.grab();
-    self.renderer = Renderer{ .game = self };
+    self.renderer = Renderer{ .game = self, .rng = random };
 }
 
 pub fn update(self: *@This(), inputs: u8) void {
     self.renderer.update();
     self.script.update();
-    if (self.game_over) return;
+    if (self.game_over or self.renderer.y_offset > 10) return;
     self.drop_timer +%= 1;
-    if (self.drop_timer > 60 - self.lines_cleared) {
+    if (self.drop_timer > 70 - self.lines_cleared) {
         self.drop_timer = 0;
         self.soft_drop();
     }
@@ -92,8 +92,16 @@ fn place_tetromino(self: *@This()) void {
     self.player_y = 0;
     self.rotation = 0;
     self.tetromino = self.bag.grab();
-    if (self.collides(0, 0, 0)) self.game_over = true;
-    w4.tone(110, 2 | (15 << 8), 50, w4.TONE_NOISE);
+    if (self.collides(0, 0, 0)) {
+        self.game_over = true;
+        if (self.script.revealed >= 18) {
+            w4.tone(55 | (110 << 16), 180 | (60 << 8), 70, w4.TONE_NOISE);
+        } else {
+            w4.tone(110 | (55 << 16), 180 | (60 << 8), 70, w4.TONE_NOISE);
+        }
+    } else {
+        w4.tone(110, 2 | (15 << 8), 50, w4.TONE_NOISE);
+    }
 }
 
 fn clear_lines(self: *@This()) void {

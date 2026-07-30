@@ -7,7 +7,7 @@ const lines: [3][4][]const u8 = .{
     .{ "Construire", "Babel", "Appuyez \x80", "pour\nd\xE9marrer" },
 };
 
-rng: std.Random = undefined,
+rng: std.Random,
 timers: [4]u8 = .{ 0, 0, 0, 0 },
 versions: [4]u8 = .{ 0, 0, 0, 0 },
 

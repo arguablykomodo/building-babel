@@ -6,6 +6,7 @@ pub const BLOCK_SIZE = 9;
 const H_RADIUS = BLOCK_SIZE * Game.WIDTH / 6;
 const V_RADIUS = BLOCK_SIZE;
 
+rng: std.Random,
 game: *const Game,
 x_offset: f32 = Game.WIDTH,
 y_offset: f32 = 200,
@@ -21,8 +22,13 @@ fn draw_block(self: @This(), x: f32, y: f32, back: bool) void {
     var screen_x: i32 = @intFromFloat(circ_x * H_RADIUS + 80);
     var screen_x2: i32 = @intFromFloat(circ_x2 * H_RADIUS + 80);
     if (screen_x > screen_x2) std.mem.swap(i32, &screen_x, &screen_x2);
-    const screen_y: i32 = @intFromFloat(circ_y * V_RADIUS + y * BLOCK_SIZE + BLOCK_SIZE);
-    w4.rect(screen_x - 40, screen_y - @as(i32, @intFromFloat(self.y_offset)), @intCast(screen_x2 - screen_x), BLOCK_SIZE);
+    const width: u32 = @intCast(screen_x2 - screen_x);
+    var screen_y: i32 = @intFromFloat(circ_y * V_RADIUS + y * BLOCK_SIZE + BLOCK_SIZE);
+    if (self.game.game_over) {
+        screen_x += self.rng.intRangeAtMost(i32, -1, 1);
+        screen_y += self.rng.intRangeAtMost(i32, -1, 1);
+    }
+    w4.rect(screen_x - 40, screen_y - @as(i32, @intFromFloat(self.y_offset)), width, BLOCK_SIZE);
 }
 
 fn draw_grid(self: @This(), back: bool) void {
@@ -31,7 +37,7 @@ fn draw_grid(self: @This(), back: bool) void {
             if (cell) self.draw_block(@floatFromInt(x), @as(f32, @floatFromInt(y)), back);
         }
     }
-    for (0..3 + @as(usize, @intFromFloat(self.y_offset))) |y| {
+    for (0..3 + @as(usize, @intFromFloat(@max(0, self.y_offset)))) |y| {
         for (0..Game.WIDTH) |x| {
             self.draw_block(@floatFromInt(x), Game.HEIGHT + @as(f32, @floatFromInt(y)), back);
         }
@@ -53,11 +59,18 @@ fn draw_shadow(self: @This()) void {
 }
 
 pub fn update(self: *@This()) void {
-    if (self.y_offset < 10) self.y_offset *= 0.9 else self.y_offset -= 1;
-    self.x_offset = if (@abs(self.x_offset - self.game.player_x) < 1.0)
+    if (self.game.game_over) {
+        if (self.y_offset > -160) {
+            self.y_offset += @min(-0.1, self.y_offset * 0.02);
+        }
+    } else {
+        if (self.y_offset < 10) self.y_offset *= 0.9 else self.y_offset -= 1;
+    }
+    const x_diff = self.x_offset - self.game.player_x;
+    self.x_offset = if (@abs(x_diff) < 1.0)
         std.math.lerp(self.x_offset, self.game.player_x, 0.1)
     else
-        self.x_offset - @as(f32, @floatFromInt(std.math.sign(self.x_offset - self.game.player_x))) * 0.1;
+        self.x_offset - @as(f32, @floatFromInt(std.math.sign(x_diff))) * 0.1;
 }
 
 pub fn draw(self: @This()) void {
@@ -79,6 +92,16 @@ pub fn draw(self: @This()) void {
         self.game.player_y,
         self.game.rotation,
     )) |block| self.draw_block(block[0], block[1], false);
+
+    if (self.y_offset <= -159) {
+        w4.DRAW_COLORS.* = 0x04;
+        if (self.game.script.revealed >= 18) {
+            w4.text("FIN", 28, 76);
+        } else {
+            w4.text("GAME", 22, 72);
+            w4.text("OVER", 22, 80);
+        }
+    }
 }
 
 pub fn set_time_of_day(self: *const @This()) void {
