@@ -1,6 +1,6 @@
 const std = @import("std");
 const w4 = @import("wasm4.zig");
-const Game = @import("Game.zig");
+const Board = @import("Board.zig");
 const sprites = @import("sprites");
 const Script = @import("Script.zig");
 
@@ -18,7 +18,7 @@ const night_colors: [4]u32 = .{
     0x2d162c,
 };
 
-var game: Game = undefined;
+var game: Board = undefined;
 var input: InputManager = .{};
 var script: Script = .{};
 
@@ -42,8 +42,8 @@ const InputManager = struct {
 };
 
 export fn start() void {
-    game = Game.init(0);
-    game.renderer = Game.Renderer{ .game = &game };
+    game = Board.init(0);
+    game.renderer = Board.Renderer{ .game = &game };
 }
 
 pub fn lerpColor(c0: u32, c1: u32, t: f32) u32 {

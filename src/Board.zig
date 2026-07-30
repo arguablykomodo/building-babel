@@ -1,5 +1,5 @@
 const Tetromino = @import("tetromino.zig").Tetromino;
-pub const Renderer = @import("GameRenderer.zig");
+pub const Renderer = @import("BoardRenderer.zig");
 
 pub const WIDTH = 20;
 pub const HEIGHT = 15;

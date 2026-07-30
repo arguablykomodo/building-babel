@@ -1,19 +1,19 @@
 const std = @import("std");
 const w4 = @import("wasm4.zig");
-const Game = @import("Game.zig");
+const Board = @import("Board.zig");
 
 const BLOCK_SIZE = 9;
-const H_RADIUS = BLOCK_SIZE * Game.WIDTH / 6;
+const H_RADIUS = BLOCK_SIZE * Board.WIDTH / 6;
 const V_RADIUS = BLOCK_SIZE;
 
-game: *const Game,
+game: *const Board,
 x_offset: f32 = 0,
 y_offset: f32 = 0,
 
 pub fn draw_block(self: @This(), x: f32, y: f32, back: bool) void {
-    const circ_x = @cos((x - self.x_offset) / Game.WIDTH * std.math.tau);
-    const circ_x2 = @cos((x + 1 - self.x_offset) / Game.WIDTH * std.math.tau);
-    const circ_y = @sin((x - self.x_offset) / Game.WIDTH * std.math.tau);
+    const circ_x = @cos((x - self.x_offset) / Board.WIDTH * std.math.tau);
+    const circ_x2 = @cos((x + 1 - self.x_offset) / Board.WIDTH * std.math.tau);
+    const circ_y = @sin((x - self.x_offset) / Board.WIDTH * std.math.tau);
 
     if (back and circ_y >= 0) return;
     if (!back and circ_y < 0) return;
@@ -32,8 +32,8 @@ pub fn draw_grid(self: @This(), back: bool) void {
         }
     }
     for (0..4) |y| {
-        for (0..Game.WIDTH) |x| {
-            self.draw_block(@floatFromInt(x), Game.HEIGHT + @as(f32, @floatFromInt(y)) - self.y_offset, back);
+        for (0..Board.WIDTH) |x| {
+            self.draw_block(@floatFromInt(x), Board.HEIGHT + @as(f32, @floatFromInt(y)) - self.y_offset, back);
         }
     }
 }
@@ -47,13 +47,13 @@ pub fn draw_shadow(self: @This()) void {
         self.game.rotation,
     );
     for (blocks) |block| {
-        const x_wrapped = @mod(block[0], Game.WIDTH);
+        const x_wrapped = @mod(block[0], Board.WIDTH);
         self.draw_block(x_wrapped, block[1], false);
     }
 }
 
 pub fn draw(self: *@This()) void {
-    self.x_offset = std.math.lerp(self.x_offset, self.game.player_x - Game.WIDTH / 4 + 1, 0.1);
+    self.x_offset = std.math.lerp(self.x_offset, self.game.player_x - Board.WIDTH / 4 + 1, 0.1);
     self.y_offset *= 0.9;
 
     w4.DRAW_COLORS.* = 0x43;
