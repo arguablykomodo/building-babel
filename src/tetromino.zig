@@ -38,13 +38,13 @@ pub const Tetromino = enum {
     }
 
     pub const Bag = struct {
-        rng: std.Random.DefaultPrng,
+        rng: std.Random,
         shapes: [7]Tetromino = .{ .i, .o, .t, .s, .z, .j, .l },
         taken: u8 = 0,
 
-        pub fn init(seed: u64) Bag {
-            var bag = Bag{ .rng = std.Random.DefaultPrng.init(seed) };
-            bag.rng.random().shuffle(Tetromino, &bag.shapes);
+        pub fn init(rng: std.Random) Bag {
+            var bag = Bag{ .rng = rng };
+            bag.rng.shuffle(Tetromino, &bag.shapes);
             return bag;
         }
 
@@ -52,7 +52,7 @@ pub const Tetromino = enum {
             const grabbed = self.shapes[self.taken];
             self.taken += 1;
             if (self.taken >= 7) {
-                self.rng.random().shuffle(Tetromino, &self.shapes);
+                self.rng.shuffle(Tetromino, &self.shapes);
                 self.taken = 0;
             }
             return grabbed;

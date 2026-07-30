@@ -1,3 +1,4 @@
+const std = @import("std");
 const w4 = @import("wasm4.zig");
 const Tetromino = @import("tetromino.zig").Tetromino;
 const Renderer = @import("BoardRenderer.zig");
@@ -20,8 +21,8 @@ drop_timer: u8 = 0,
 renderer: Renderer = undefined,
 script: Script = .{},
 
-pub fn init(self: *@This(), seed: u64) void {
-    self.bag = Tetromino.Bag.init(seed);
+pub fn init(self: *@This(), random: std.Random) void {
+    self.bag = Tetromino.Bag.init(random);
     self.tetromino = self.bag.grab();
     self.renderer = Renderer{ .game = self };
 }

@@ -3,6 +3,7 @@ const w4 = @import("wasm4.zig");
 const Game = @import("Game.zig");
 const sprites = @import("sprites");
 
+var rng: std.Random.DefaultPrng = std.Random.DefaultPrng.init(0);
 var input: InputManager = .{};
 var game: Game = .{};
 var cloud_timer: u32 = 1000;
@@ -24,7 +25,7 @@ const InputManager = struct {
 };
 
 export fn start() void {
-    game.init(0);
+    game.init(rng.random());
 }
 
 export fn update() void {
