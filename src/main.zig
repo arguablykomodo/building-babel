@@ -1,12 +1,16 @@
 const std = @import("std");
 const w4 = @import("wasm4.zig");
 const Game = @import("Game.zig");
+const Title = @import("Title.zig");
 const sprites = @import("sprites");
 
 var rng: std.Random.DefaultPrng = std.Random.DefaultPrng.init(0);
 var input: InputManager = .{};
 var game: Game = .{};
 var cloud_timer: u32 = 1000;
+var title: Title = undefined;
+
+var game_started: bool = false;
 
 const InputManager = struct {
     timer: [8]u8 = [_]u8{0} ** 8,
@@ -25,13 +29,11 @@ const InputManager = struct {
 };
 
 export fn start() void {
+    title = Title.init(rng.random());
     game.init(rng.random());
 }
 
 export fn update() void {
-    const inputs = input.poll();
-    game.update(inputs);
-
     cloud_timer +%= 1;
     inline for (0..5) |i| {
         const sprite = @field(sprites, std.fmt.comptimePrint("cloud_{}", .{i}));
@@ -43,5 +45,16 @@ export fn update() void {
         w4.blit(&sprite, x - width, (4 - i) * 25 + 8, width, height, flags);
     }
 
+    const inputs = input.poll();
+    if (game_started) {
+        game.update(inputs);
+    } else {
+        if (inputs & w4.BUTTON_1 != 0) {
+            game.init(rng.random());
+            game_started = true;
+        }
+        title.update();
+        title.draw();
+    }
     game.draw();
 }
