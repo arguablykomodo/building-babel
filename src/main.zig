@@ -60,6 +60,8 @@ fn lerp(a: u32, b: u32, t: f32) u32 {
 export fn update() void {
     cloud_timer +%= 1;
     drop_timer +%= 1;
+    script.update();
+
     if (drop_timer > 60 - game.lines_cleared) {
         drop_timer = 0;
         game.soft_drop();
