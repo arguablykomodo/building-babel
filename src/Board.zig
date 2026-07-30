@@ -112,6 +112,7 @@ fn clear_lines(self: *@This()) void {
             self.lines_cleared +|= 1;
             self.renderer.y_offset += Renderer.BLOCK_SIZE;
             self.script.revealed = self.lines_cleared / 3;
+            self.renderer.set_time_of_day();
             w4.tone(880, 1 | (5 << 8), 50, w4.TONE_TRIANGLE);
         }
         y -= 1;

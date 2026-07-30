@@ -80,3 +80,38 @@ pub fn draw(self: @This()) void {
         self.game.rotation,
     )) |block| self.draw_block(block[0], block[1], false);
 }
+
+pub fn set_time_of_day(self: *const @This()) void {
+    const time_of_day = @min(1.0, @as(f32, @floatFromInt(self.game.lines_cleared)) / 54.0);
+    w4.PALETTE.* = .{
+        lerpColor(day_colors[0], night_colors[0], time_of_day),
+        lerpColor(day_colors[1], night_colors[1], time_of_day),
+        lerpColor(day_colors[2], night_colors[2], time_of_day),
+        lerpColor(day_colors[3], night_colors[3], time_of_day),
+    };
+}
+
+const day_colors: [4]u32 = .{
+    0xe0f8cf,
+    0x86c06c,
+    0x306850,
+    0x071821,
+};
+
+const night_colors: [4]u32 = .{
+    0x9775a6,
+    0x683a68,
+    0x412752,
+    0x2d162c,
+};
+
+pub fn lerpColor(c0: u32, c1: u32, t: f32) u32 {
+    const r = lerp(c0 & 0xFF0000, c1 & 0xFF0000, t);
+    const g = lerp(c0 & 0x00FF00, c1 & 0x00FF00, t);
+    const b = lerp(c0 & 0x0000FF, c1 & 0x0000FF, t);
+    return (r & 0xFF0000) + (g & 0x00FF00) + (b & 0x0000FF);
+}
+
+fn lerp(a: u32, b: u32, t: f32) u32 {
+    return @intFromFloat((1 - t) * @as(f32, @floatFromInt(a)) + t * @as(f32, @floatFromInt(b)));
+}
