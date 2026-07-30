@@ -14,6 +14,7 @@ player_y: i16 = 0,
 rotation: u2 = 0,
 lines_cleared: usize = 0,
 game_over: bool = false,
+drop_timer: u8 = 0,
 
 renderer: Renderer = undefined,
 
@@ -21,6 +22,25 @@ pub fn init(seed: u64) @This() {
     var game: @This() = .{ .bag = Tetromino.Bag.init(seed) };
     game.tetromino = game.bag.grab();
     return game;
+}
+
+pub fn update(self: *@This(), inputs: u8) void {
+    self.renderer.update();
+    if (self.game_over) return;
+    self.drop_timer +%= 1;
+    if (self.drop_timer > 60 - self.lines_cleared) {
+        self.drop_timer = 0;
+        self.soft_drop();
+    }
+    if (inputs & w4.BUTTON_RIGHT != 0) self.move(-1);
+    if (inputs & w4.BUTTON_LEFT != 0) self.move(1);
+    if (inputs & w4.BUTTON_UP != 0) self.rotate();
+    if (inputs & w4.BUTTON_DOWN != 0) self.soft_drop();
+    if (inputs & w4.BUTTON_1 != 0) self.hard_drop();
+}
+
+pub fn draw(self: *const @This()) void {
+    self.renderer.draw();
 }
 
 pub fn collides(self: @This(), x: i16, y: i16, rot: u1) bool {
@@ -38,29 +58,24 @@ pub fn collides(self: @This(), x: i16, y: i16, rot: u1) bool {
     return false;
 }
 
-pub fn move(self: *@This(), direction: i2) void {
-    if (self.game_over) return;
+fn move(self: *@This(), direction: i2) void {
     if (!self.collides(direction, 0, 0)) self.player_x += direction;
 }
 
-pub fn rotate(self: *@This()) void {
-    if (self.game_over) return;
+fn rotate(self: *@This()) void {
     if (!self.collides(0, 0, 1)) self.rotation +%= 1;
 }
 
-pub fn soft_drop(self: *@This()) void {
-    if (self.game_over) return;
+fn soft_drop(self: *@This()) void {
     if (self.collides(0, 1, 0)) self.place_tetromino() else self.player_y += 1;
 }
 
-pub fn hard_drop(self: *@This()) void {
-    if (self.game_over) return;
+fn hard_drop(self: *@This()) void {
     while (!self.collides(0, 1, 0)) self.player_y += 1;
     self.place_tetromino();
 }
 
 fn place_tetromino(self: *@This()) void {
-    if (self.game_over) return;
     const blocks = self.tetromino.blocks(self.player_x, self.player_y, self.rotation);
     for (blocks) |block| {
         const wrapped_x = @mod(block[0], WIDTH);

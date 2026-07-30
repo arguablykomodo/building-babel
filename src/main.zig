@@ -22,7 +22,6 @@ var game: Board = undefined;
 var input: InputManager = .{};
 var script: Script = .{};
 
-var drop_timer: u8 = 0;
 var cloud_timer: u32 = 1000;
 
 const InputManager = struct {
@@ -58,22 +57,10 @@ fn lerp(a: u32, b: u32, t: f32) u32 {
 }
 
 export fn update() void {
-    cloud_timer +%= 1;
-    drop_timer +%= 1;
-    script.update();
-    game.renderer.update();
-
-    if (drop_timer > 60 - game.lines_cleared) {
-        drop_timer = 0;
-        game.soft_drop();
-    }
     const inputs = input.poll();
 
-    if (inputs & w4.BUTTON_RIGHT != 0) game.move(-1);
-    if (inputs & w4.BUTTON_LEFT != 0) game.move(1);
-    if (inputs & w4.BUTTON_UP != 0) game.rotate();
-    if (inputs & w4.BUTTON_DOWN != 0) game.soft_drop();
-    if (inputs & w4.BUTTON_1 != 0) game.hard_drop();
+    game.update(inputs);
+    script.update();
 
     const time_of_day = @min(1.0, @as(f32, @floatFromInt(game.lines_cleared)) / 54.0);
     w4.PALETTE.* = .{
@@ -83,6 +70,7 @@ export fn update() void {
         lerpColor(day_colors[3], night_colors[3], time_of_day),
     };
 
+    cloud_timer +%= 1;
     inline for (0..5) |i| {
         const sprite = @field(sprites, std.fmt.comptimePrint("cloud_{}", .{i}));
         const width = @field(sprites, std.fmt.comptimePrint("cloud_{}_width", .{i}));
@@ -93,7 +81,7 @@ export fn update() void {
         w4.blit(&sprite, x - width, (4 - i) * 25 + 8, width, height, flags);
     }
 
-    game.renderer.draw();
+    game.draw();
     script.draw();
     script.revealed = game.lines_cleared / 3;
 }
