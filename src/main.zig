@@ -1,10 +1,10 @@
 const std = @import("std");
 const w4 = @import("wasm4.zig");
-const Board = @import("Board.zig");
+const Game = @import("Game.zig");
 const sprites = @import("sprites");
 
 var input: InputManager = .{};
-var game: Board = .{};
+var game: Game = .{};
 var cloud_timer: u32 = 1000;
 
 const InputManager = struct {
