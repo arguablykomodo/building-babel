@@ -85,15 +85,15 @@ const Paragraph = struct {
         }
     }
 
-    pub fn draw(self: Paragraph, y: i32) void {
+    pub fn draw(self: *const Paragraph, y: i32) void {
         self.versions[self.version].draw(y, self.right, self.chars);
     }
 };
 
 const Wrapped = struct {
     height: usize = 0,
-    lines: [20][]const u8 = undefined,
-    widths: [20]i32 = undefined,
+    lines: [12][]const u8 = undefined,
+    widths: [12]i32 = undefined,
     len: usize = 0,
 
     pub fn init(comptime paragraph: []const u8) Wrapped {
@@ -128,7 +128,7 @@ const Wrapped = struct {
         return wrapped;
     }
 
-    pub fn draw(self: Wrapped, y: i32, right: bool, chars: usize) void {
+    pub fn draw(self: *const Wrapped, y: i32, right: bool, chars: usize) void {
         w4.DRAW_COLORS.* = if (right) 0x04 else 0x03;
         var chars_drawn: usize = 0;
         for (self.lines[0..self.height], self.widths[0..self.height], 0..) |line, width, i| {

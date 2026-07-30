@@ -2,7 +2,6 @@ const std = @import("std");
 const w4 = @import("wasm4.zig");
 const Board = @import("Board.zig");
 const sprites = @import("sprites");
-const Script = @import("Script.zig");
 
 const day_colors: [4]u32 = .{
     0xe0f8cf,
@@ -20,7 +19,6 @@ const night_colors: [4]u32 = .{
 
 var game: Board = .{};
 var input: InputManager = .{};
-var script: Script = .{};
 
 var cloud_timer: u32 = 1000;
 
@@ -57,9 +55,7 @@ fn lerp(a: u32, b: u32, t: f32) u32 {
 
 export fn update() void {
     const inputs = input.poll();
-
     game.update(inputs);
-    script.update();
 
     const time_of_day = @min(1.0, @as(f32, @floatFromInt(game.lines_cleared)) / 54.0);
     w4.PALETTE.* = .{
@@ -81,6 +77,4 @@ export fn update() void {
     }
 
     game.draw();
-    script.draw();
-    script.revealed = game.lines_cleared / 3;
 }

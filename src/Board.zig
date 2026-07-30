@@ -1,6 +1,7 @@
 const w4 = @import("wasm4.zig");
 const Tetromino = @import("tetromino.zig").Tetromino;
 const Renderer = @import("BoardRenderer.zig");
+const Script = @import("Script.zig");
 
 pub const WIDTH = 20;
 pub const HEIGHT = 15;
@@ -17,6 +18,7 @@ game_over: bool = false,
 drop_timer: u8 = 0,
 
 renderer: Renderer = undefined,
+script: Script = .{},
 
 pub fn init(self: *@This(), seed: u64) void {
     self.bag = Tetromino.Bag.init(seed);
@@ -26,6 +28,7 @@ pub fn init(self: *@This(), seed: u64) void {
 
 pub fn update(self: *@This(), inputs: u8) void {
     self.renderer.update();
+    self.script.update();
     if (self.game_over) return;
     self.drop_timer +%= 1;
     if (self.drop_timer > 60 - self.lines_cleared) {
@@ -41,9 +44,10 @@ pub fn update(self: *@This(), inputs: u8) void {
 
 pub fn draw(self: *const @This()) void {
     self.renderer.draw();
+    self.script.draw();
 }
 
-pub fn collides(self: @This(), x: i16, y: i16, rot: u1) bool {
+pub fn collides(self: *const @This(), x: i16, y: i16, rot: u1) bool {
     const blocks = self.tetromino.blocks(
         self.player_x + x,
         self.player_y + y,
@@ -107,6 +111,7 @@ fn clear_lines(self: *@This()) void {
             self.grid[0] = [_]bool{false} ** WIDTH;
             self.lines_cleared +|= 1;
             self.renderer.y_offset += Renderer.BLOCK_SIZE;
+            self.script.revealed = self.lines_cleared / 3;
             w4.tone(880, 1 | (5 << 8), 50, w4.TONE_TRIANGLE);
         }
         y -= 1;
