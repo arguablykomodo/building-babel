@@ -11,7 +11,7 @@ game: *const Game,
 x_offset: f32 = Game.WIDTH,
 y_offset: f32 = 200,
 
-fn draw_block(self: @This(), x: f32, y: f32, back: bool) void {
+fn drawBlock(self: @This(), x: f32, y: f32, back: bool) void {
     const circ_x = @cos((x - (self.x_offset - Game.WIDTH / 4 + 1)) / Game.WIDTH * std.math.tau);
     const circ_x2 = @cos((x + 1 - (self.x_offset - Game.WIDTH / 4 + 1)) / Game.WIDTH * std.math.tau);
     const circ_y = @sin((x - (self.x_offset - Game.WIDTH / 4 + 1)) / Game.WIDTH * std.math.tau);
@@ -31,20 +31,20 @@ fn draw_block(self: @This(), x: f32, y: f32, back: bool) void {
     w4.rect(screen_x - 40, screen_y - @as(i32, @intFromFloat(self.y_offset)), width, BLOCK_SIZE);
 }
 
-fn draw_grid(self: @This(), back: bool) void {
+fn drawGrid(self: @This(), back: bool) void {
     for (self.game.grid, 0..) |row, y| {
         for (row, 0..) |cell, x| {
-            if (cell) self.draw_block(@floatFromInt(x), @as(f32, @floatFromInt(y)), back);
+            if (cell) self.drawBlock(@floatFromInt(x), @as(f32, @floatFromInt(y)), back);
         }
     }
     for (0..3 + @as(usize, @intFromFloat(@max(0, self.y_offset)))) |y| {
         for (0..Game.WIDTH) |x| {
-            self.draw_block(@floatFromInt(x), Game.HEIGHT + @as(f32, @floatFromInt(y)), back);
+            self.drawBlock(@floatFromInt(x), Game.HEIGHT + @as(f32, @floatFromInt(y)), back);
         }
     }
 }
 
-fn draw_shadow(self: @This()) void {
+fn drawShadow(self: @This()) void {
     var shadow_y: i16 = 0;
     while (!self.game.collides(0, shadow_y + 1, 0)) shadow_y += 1;
     const blocks = self.game.tetromino.blocks(
@@ -54,7 +54,7 @@ fn draw_shadow(self: @This()) void {
     );
     for (blocks) |block| {
         const x_wrapped = @mod(block[0], Game.WIDTH);
-        self.draw_block(x_wrapped, block[1], false);
+        self.drawBlock(x_wrapped, block[1], false);
     }
 }
 
@@ -79,19 +79,19 @@ pub fn draw(self: @This()) void {
         self.game.player_x,
         self.game.player_y,
         self.game.rotation,
-    )) |block| self.draw_block(block[0], block[1], true);
-    self.draw_grid(true);
+    )) |block| self.drawBlock(block[0], block[1], true);
+    self.drawGrid(true);
 
     w4.DRAW_COLORS.* = 0x20;
-    self.draw_shadow();
+    self.drawShadow();
 
     w4.DRAW_COLORS.* = 0x32;
-    self.draw_grid(false);
+    self.drawGrid(false);
     for (self.game.tetromino.blocks(
         self.game.player_x,
         self.game.player_y,
         self.game.rotation,
-    )) |block| self.draw_block(block[0], block[1], false);
+    )) |block| self.drawBlock(block[0], block[1], false);
 
     if (self.y_offset <= -159) {
         w4.DRAW_COLORS.* = 0x04;
@@ -104,7 +104,7 @@ pub fn draw(self: @This()) void {
     }
 }
 
-pub fn set_time_of_day(self: *const @This()) void {
+pub fn setTimeOfDay(self: *const @This()) void {
     const time_of_day = @min(1.0, @as(f32, @floatFromInt(self.game.lines_cleared)) / 54.0);
     w4.PALETTE.* = .{
         lerpColor(day_colors[0], night_colors[0], time_of_day),

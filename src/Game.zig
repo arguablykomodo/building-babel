@@ -34,13 +34,13 @@ pub fn update(self: *@This(), inputs: u8) void {
     self.drop_timer +%= 1;
     if (self.drop_timer > 70 - self.lines_cleared) {
         self.drop_timer = 0;
-        self.soft_drop();
+        self.softDrop();
     }
     if (inputs & w4.BUTTON_RIGHT != 0) self.move(-1);
     if (inputs & w4.BUTTON_LEFT != 0) self.move(1);
     if (inputs & w4.BUTTON_UP != 0) self.rotate();
-    if (inputs & w4.BUTTON_DOWN != 0) self.soft_drop();
-    if (inputs & w4.BUTTON_1 != 0) self.hard_drop();
+    if (inputs & w4.BUTTON_DOWN != 0) self.softDrop();
+    if (inputs & w4.BUTTON_1 != 0) self.hardDrop();
 }
 
 pub fn draw(self: *const @This()) void {
@@ -71,16 +71,16 @@ fn rotate(self: *@This()) void {
     if (!self.collides(0, 0, 1)) self.rotation +%= 1;
 }
 
-fn soft_drop(self: *@This()) void {
-    if (self.collides(0, 1, 0)) self.place_tetromino() else self.player_y += 1;
+fn softDrop(self: *@This()) void {
+    if (self.collides(0, 1, 0)) self.placeTetromino() else self.player_y += 1;
 }
 
-fn hard_drop(self: *@This()) void {
+fn hardDrop(self: *@This()) void {
     while (!self.collides(0, 1, 0)) self.player_y += 1;
-    self.place_tetromino();
+    self.placeTetromino();
 }
 
-fn place_tetromino(self: *@This()) void {
+fn placeTetromino(self: *@This()) void {
     const blocks = self.tetromino.blocks(self.player_x, self.player_y, self.rotation);
     for (blocks) |block| {
         const wrapped_x = @mod(block[0], WIDTH);
@@ -88,7 +88,7 @@ fn place_tetromino(self: *@This()) void {
         if (block[1] >= HEIGHT) return;
         self.grid[@intCast(block[1])][@intCast(wrapped_x)] = true;
     }
-    self.clear_lines();
+    self.clearLines();
     self.player_y = 0;
     self.rotation = 0;
     self.tetromino = self.bag.grab();
@@ -104,7 +104,7 @@ fn place_tetromino(self: *@This()) void {
     }
 }
 
-fn clear_lines(self: *@This()) void {
+fn clearLines(self: *@This()) void {
     var y: u8 = HEIGHT - 1;
     while (y > 0) {
         var full = true;
@@ -121,7 +121,7 @@ fn clear_lines(self: *@This()) void {
             self.lines_cleared +|= 1;
             self.renderer.y_offset += Renderer.BLOCK_SIZE;
             self.script.revealed = self.lines_cleared / 3;
-            self.renderer.set_time_of_day();
+            self.renderer.setTimeOfDay();
             w4.tone(880, 1 | (5 << 8), 50, w4.TONE_TRIANGLE);
         }
         y -= 1;
