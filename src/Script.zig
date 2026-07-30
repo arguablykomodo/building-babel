@@ -7,29 +7,25 @@ const SPACE_WIDTH = 4;
 const CHAR_WIDTH = 8;
 const REVEAL_TIME = 4;
 const LANG_TIME = 120;
-
 const LANGUAGES = 3;
 const PARAGRAPHS = 18;
 
-const scripts: [LANGUAGES][]const u8 = .{
-    @embedFile("script/es.ascii"),
-    @embedFile("script/en.ascii"),
-    @embedFile("script/fr.ascii"),
-};
-
-revealed: usize = 0,
-paragraphs: [PARAGRAPHS]Paragraph = init_paragraphs(),
-offset_y: f32 = 0,
-
-fn init_paragraphs() [PARAGRAPHS]Paragraph {
+paragraphs: [PARAGRAPHS]Paragraph = blk: {
+    const scripts: [LANGUAGES][]const u8 = .{
+        @embedFile("script/es.ascii"),
+        @embedFile("script/en.ascii"),
+        @embedFile("script/fr.ascii"),
+    };
     var paragraphs: [PARAGRAPHS]Paragraph = undefined;
     var iters: [LANGUAGES]std.mem.SplitIterator(u8, .scalar) = undefined;
     for (scripts, 0..) |script, i| iters[i] = std.mem.splitScalar(u8, script, '\n');
     for (&paragraphs) |*paragraph| {
         paragraph.* = Paragraph.init(&iters);
     }
-    return paragraphs;
-}
+    break :blk paragraphs;
+},
+revealed: usize = 0,
+offset_y: f32 = 0,
 
 pub fn update(self: *@This()) void {
     var height: i32 = 1;
@@ -41,7 +37,7 @@ pub fn update(self: *@This()) void {
     self.offset_y = std.math.lerp(self.offset_y, target_y, 0.02);
 }
 
-pub fn draw(self: *@This()) void {
+pub fn draw(self: *const @This()) void {
     var height: i32 = 1;
     for (self.paragraphs[0..self.revealed]) |paragraph| {
         paragraph.draw(height - @as(i32, @intFromFloat(self.offset_y)));
@@ -57,7 +53,7 @@ const Paragraph = struct {
     height: i32 = 0,
 
     reveal_timer: usize = REVEAL_TIME,
-    chars: usize = 0, // Chars to draw
+    chars: usize = 0,
     sound: bool = true,
 
     pub fn init(iters: *[LANGUAGES]std.mem.SplitIterator(u8, .scalar)) Paragraph {
@@ -95,9 +91,9 @@ const Paragraph = struct {
 };
 
 const Wrapped = struct {
-    height: usize = 0, // Number of lines
-    lines: [20][]const u8 = undefined, // Wrapped lines
-    widths: [20]i32 = undefined, // Width per line
+    height: usize = 0,
+    lines: [20][]const u8 = undefined,
+    widths: [20]i32 = undefined,
     len: usize = 0,
 
     pub fn init(comptime paragraph: []const u8) Wrapped {
