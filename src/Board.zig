@@ -1,3 +1,4 @@
+const w4 = @import("wasm4.zig");
 const Tetromino = @import("tetromino.zig").Tetromino;
 pub const Renderer = @import("BoardRenderer.zig");
 
@@ -65,6 +66,7 @@ fn place_tetromino(self: *@This()) void {
     self.player_y = 0;
     self.rotation = 0;
     self.tetromino = self.bag.grab();
+    w4.tone(110, 2 | (15 << 8), 50, w4.TONE_NOISE);
 }
 
 fn clear_lines(self: *@This()) void {
@@ -83,6 +85,7 @@ fn clear_lines(self: *@This()) void {
             self.grid[0] = [_]bool{false} ** WIDTH;
             self.lines_cleared +|= 1;
             self.renderer.y_offset += 1.0;
+            w4.tone(880, 1 | (5 << 8), 50, w4.TONE_TRIANGLE);
         }
         y -= 1;
     }

@@ -56,6 +56,10 @@ const Paragraph = struct {
     right: bool = false,
     height: i32 = 0,
 
+    reveal_timer: usize = REVEAL_TIME,
+    chars: usize = 0, // Chars to draw
+    sound: bool = true,
+
     pub fn init(iters: *[LANGUAGES]std.mem.SplitIterator(u8, .scalar)) Paragraph {
         var paragraph = Paragraph{};
         for (iters, 0..) |*iter, i| {
@@ -73,11 +77,20 @@ const Paragraph = struct {
             self.version = @mod(self.version + 1, LANGUAGES);
             self.version_timer = LANG_TIME;
         }
-        for (&self.versions) |*version| version.update();
+        self.reveal_timer -= 1;
+        if (self.reveal_timer == 0) {
+            self.chars +|= 1;
+            self.reveal_timer = REVEAL_TIME;
+            if (self.sound and self.chars < self.versions[self.version].len) {
+                if (self.right) {
+                    w4.tone(207, 2, 30, w4.TONE_TRIANGLE);
+                } else w4.tone(196, 2, 30, w4.TONE_TRIANGLE);
+            } else self.sound = true;
+        }
     }
 
     pub fn draw(self: Paragraph, y: i32) void {
-        self.versions[self.version].draw(y, self.right);
+        self.versions[self.version].draw(y, self.right, self.chars);
     }
 };
 
@@ -85,9 +98,7 @@ const Wrapped = struct {
     height: usize = 0, // Number of lines
     lines: [20][]const u8 = undefined, // Wrapped lines
     widths: [20]i32 = undefined, // Width per line
-
-    reveal_timer: usize = REVEAL_TIME,
-    chars: usize = 0, // Chars to draw
+    len: usize = 0,
 
     pub fn init(comptime paragraph: []const u8) Wrapped {
         @setEvalBranchQuota(20000);
@@ -97,6 +108,7 @@ const Wrapped = struct {
         var start_index: usize = 0;
         var end_index: usize = 0;
         while (words.next()) |word| {
+            wrapped.len += word.len;
             if (width + word.len * CHAR_WIDTH > MAX_WIDTH) {
                 width -|= SPACE_WIDTH;
                 end_index -|= 1;
@@ -120,26 +132,18 @@ const Wrapped = struct {
         return wrapped;
     }
 
-    pub fn update(self: *Wrapped) void {
-        self.reveal_timer -= 1;
-        if (self.reveal_timer == 0) {
-            self.chars += 1;
-            self.reveal_timer = REVEAL_TIME;
-        }
-    }
-
-    pub fn draw(self: Wrapped, y: i32, right: bool) void {
+    pub fn draw(self: Wrapped, y: i32, right: bool, chars: usize) void {
         w4.DRAW_COLORS.* = if (right) 0x04 else 0x03;
         var chars_drawn: usize = 0;
         for (self.lines[0..self.height], self.widths[0..self.height], 0..) |line, width, i| {
             var x: i32 = if (right) LEFT + MAX_WIDTH - width else LEFT;
             var words = std.mem.splitScalar(u8, line, ' ');
             while (words.next()) |word| {
-                const chars_to_draw = @min(self.chars - chars_drawn, word.len);
+                const chars_to_draw = @min(chars - chars_drawn, word.len);
                 w4.text(word[0..chars_to_draw], x, y + @as(i32, @intCast(i)) * CHAR_WIDTH);
                 x += @intCast(word.len * CHAR_WIDTH + SPACE_WIDTH);
                 chars_drawn += chars_to_draw;
-                if (chars_drawn >= self.chars) return;
+                if (chars_drawn >= chars) return;
             }
         }
     }
